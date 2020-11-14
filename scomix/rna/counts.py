@@ -126,7 +126,8 @@ class counts(pd.DataFrame):
             try:
                 func_self = func.replace("x", "self")
                 new_counts = eval(func_self)
-            raise SyntaxError("Syntax is not valid for transformation function {} ".format(func))
+            except SyntaxError:
+                raise SyntaxError("Syntax is not valid for transformation function {} ".format(func))
 
         if inplace:
             self._update_inplace(new_counts)
