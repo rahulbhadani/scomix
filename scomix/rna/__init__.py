@@ -1,1 +1,1 @@
-from .counts import counts
+from .counts import RnaCounts
