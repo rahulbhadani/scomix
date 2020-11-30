@@ -121,7 +121,7 @@ class RnaCounts:
         self.PC = None
         self.raw = None
         
-    
+
     @property
     def n_genes(self):
         """
@@ -144,7 +144,6 @@ class RnaCounts:
         """
         return self.cellxgene.index
 
-
     @property
     def cells(self):
         """
@@ -153,7 +152,6 @@ class RnaCounts:
         """
         return self.cellxgene.columns
         
-
     @property
     def X(self):
         """
@@ -161,7 +159,6 @@ class RnaCounts:
         """
         return self.cellxgene.values
 
-    
     def transform(self, func, inplace= False, *args, **kwargs):
         """
         Apply a transformation to the transcriptomics
@@ -222,13 +219,14 @@ class RnaCounts:
 
         """
 
-        if self.records and 'scale' in self.records.keys:
-            _LOGGER.info("cellxgene count matrix has already been scaled. Not re-scaling. Returning existinf cellxgene")
+        if self.records and 'scale' in self.records.keys():
+            _LOGGER.info("cellxgene count matrix has already been scaled. Not re-scaling. Returning existing cellxgene")
             return self.cellxgene
         
         count_sum_by_cell = self.cellxgene.sum(axis = 1)
 
         scaled_transcriptome = (scale_value/count_sum_by_cell)*self.cellxgene.T
+        scaled_transcriptome = scaled_transcriptome.T # transpose back
 
         if inplace:
             if self.raw is None:

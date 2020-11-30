@@ -47,7 +47,7 @@ class PCAModel:
 
     Parameters
     -------------
-    matrix: `pd.DataFrame`
+    rnacounts: `pd.DataFrame`
         `matrix to perform principal component on
 
     n_components: `int`
@@ -82,18 +82,22 @@ class PCAModel:
             
     """
 
-    def __init__(self, matrix: RnaCounts, n_components = 25, transform = None, svd_solver = "randomized", seed = 0) -> None:
+    def __init__(self, rnacounts: RnaCounts, n_components = 25, transform = None, svd_solver = "randomized", seed = 0) -> None:
         """        
         """
 
         self.n_components = n_components
-        self.rnacounts = matrix
+        self.rnacounts = rnacounts
         self.transform = transform
         self.svd_solver = svd_solver
         self.seed =seed
 
+        self.total_variance = None
+        self.explained_variance = None
+        self.explained_variance_ratio = None
 
-    def fit(self, transpose = False):
+
+    def fit(self, transpose = False, **kwargs):
         """
         Train the model and return principal components
 
@@ -105,9 +109,12 @@ class PCAModel:
             self.rnacounts.cellxgene = self.rnacounts.cellxgene.astype(np.float32, copy=False)
             _LOGGER.info("Converted matrix to float32 data type.")
 
+        scaler = kwargs.get("scaler", None)
 
-        self.rnacounts.scale(self.rnacounts.median, inplace = True)
-
+        if scaler is None:
+            self.rnacounts.scale(self.rnacounts.median, inplace = True)
+        else:
+            self.rnacounts.scale(scaler, inplace = True)
 
         transform = "freeman-tukey"
         if self.transform is not None:
@@ -129,14 +136,15 @@ class PCAModel:
         Y = pca_model.fit_transform(X)
         Y = np.array(Y, order='F', copy=False)
 
-        total_variance = X.var(axis = 0, ddof = 1).sum()
-        explained_variance = Y.var(axis =0, ddof =1)
-        explained_variance_ratio = explained_variance/total_variance
+        self.pca_model = pca_model
+        self.total_variance = X.var(axis = 0, ddof = 1).sum()
+        self.explained_variance = Y.var(axis =0, ddof =1)
+        self.explained_variance_ratio = self.explained_variance/self.total_variance
 
         dim_labels = [
                 'PC_%d (%.3f)' % (c+1, v)
                 for c, v in zip(
-                    range(self.n_components), explained_variance_ratio)]
+                    range(self.n_components), self.explained_variance_ratio)]
 
 
         if transpose:
